@@ -29,13 +29,35 @@ function quit(){
 
 function show_usage(){
   cat <<EOF
-usage:
+
+[usage]
   ./docker.sh <action>
   <action>: build|run|graph
-eg:
-  ./docker.sh build    //build docker with pprof
-  ./docker.sh run      //run docker daemon with pprof
-  ./docker.sh graph    //convert ${PPROF_FILE} -> ./${PDF_FILE}
+
+-----------------------------------------------------------------
+1.build docker source
+
+  ./docker.sh build <option>  //build docker source with pprof
+
+<option>
+  --tag : list all tags
+  [tag] : build specified tag
+
+example:
+  ./docker.sh build v1.9.1
+  ./docker.sh build v1.10.0-rc1
+  ./docker.sh build master
+
+-----------------------------------------------------------------
+2.run docker daemon
+
+  ./docker.sh run         //run docker daemon with pprof
+
+-----------------------------------------------------------------
+3.generate callgraph pdf
+
+  ./docker.sh graph       //convert ${PPROF_FILE} -> ./${PDF_FILE}
+
 EOF
   exit 1
 }
@@ -51,9 +73,36 @@ function do_run(){
 
 function do_build(){
 
+  if [ "$1" == "--tag" ];then
+    cd ${DOCKER_BASE} && git tag --list && cd -
+    exit 0
+  fi
+
+  TGT_BRANCH=$1
   echo "-------------------------------------"
   echo " > get docker source code"
   go get github.com/docker/docker
+  if [ "${TGT_BRANCH}" != "" ];then
+    cd ${DOCKER_BASE}
+    ORIG_BRANCH=$(git branch  | grep "*" | awk '{print $2}')
+    echo " > CURRENT BRANCH: ${ORIG_BRANCH} -> TARGET BRANCH: ${TGT_BRANCH} "
+    if [ "${TGT_BRANCH}" != "${ORIG_BRANCH}" ] ;then
+      git checkout master -f
+      if [[ "${ORIG_BRANCH}" != "master" ]];then
+        echo " > delete old branch '${ORIG_BRANCH}'"
+        git branch -D ${ORIG_BRANCH}
+      fi
+      if [ "${TGT_BRANCH}" != "master" ];then
+        echo " > start checkout branch to ${TGT_BRANCH}"
+        git reset --hard HEAD && git checkout ${TGT_BRANCH} -f && git checkout -b ${TGT_BRANCH} && cd -
+        if [ $? -ne 0 ];then
+          quit "checkout to branch ${TGT_BRANCH} failed"
+        fi
+      fi
+    else
+      echo "current branch is target branch, skip switch branch"
+    fi
+  fi
 
   echo " > check docker.go"
   if [ ! -f ${DOCKER_SRC} ];then
@@ -79,10 +128,6 @@ function do_build(){
       sed -i '/flag.Parse/a \\tif cpuprofile != "" {\n\t\tf, err := os.Create(cpuprofile)\n\t\tif err != nil { fmt.Println("Error: ", err) }\n\t\tpprof.StartCPUProfile(f)\n\t\tdefer pprof.StopCPUProfile()\n\t}' ${DOCKER_SRC}
   fi
 
-  echo " > after modified"
-  cd ${DOCKER_BASE} && git diff --exit-code && cd -
-
-
   echo "-------------------------------------"
   echo " > modify Dockerfile"
   echo " > create ${DOCKER_BASE}/sources.list "
@@ -102,14 +147,22 @@ EOF
   echo " > add sources.list to ${DOCKERFILE}"
   grep 'ADD sources.list /etc/apt/sources.list' ${DOCKERFILE} > /dev/null 2>&1
   if [ $? -ne 0 ];then
-      sed -i "/FROM ubuntu:trusty/a ADD sources.list /etc/apt/sources.list" ${DOCKERFILE}
+      sed -i "/FROM ubuntu:/a ADD sources.list /etc/apt/sources.list" ${DOCKERFILE}
   fi
   echo " > add proxy to ${DOCKERFILE}"
   grep 'ENV http_proxy' ${DOCKERFILE} > /dev/null 2>&1
   if [ $? -ne 0 ];then
       DOCKER_HOST=$(ip route | grep docker0 | awk '{print $NF}')
-      sed -i "/FROM ubuntu:trusty/a ENV http_proxy http://${DOCKER_HOST}:8118\nENV https_proxy https://${DOCKER_HOST}:8118\nENV no_proxy localhost,127.0.0.0/8,::1,mirrors.163.com" ${DOCKERFILE}
+      sed -i "/FROM ubuntu:/a ENV http_proxy http://${DOCKER_HOST}:8118\nENV https_proxy https://${DOCKER_HOST}:8118\nENV no_proxy localhost,127.0.0.0/8,::1,mirrors.163.com" ${DOCKERFILE}
   fi
+  echo " > update go-md2man 1.0.3->1.0.4"
+  sed -i 's#v1.0.3 https://github.com/cpuguy83/go-md2man.git#v1.0.4 https://github.com/cpuguy83/go-md2man.git#' ${DOCKERFILE}
+  echo " > update blackfriday 1.2->1.4"
+  sed -i 's#v1.2 https://github.com/russross/blackfriday.git#v1.4 https://github.com/russross/blackfriday.git#' ${DOCKERFILE}
+
+  echo " > after modified"
+  cd ${DOCKER_BASE} && git diff --exit-code && cd -
+  sleep 1
 
   echo "-------------------------------------"
   echo " > check docker daemon"
@@ -151,7 +204,7 @@ fi
 
 case "$1" in
   build)
-    do_build
+    do_build "$2"
     ;;
   run)
     do_run
