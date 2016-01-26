@@ -10,6 +10,7 @@
 
 GO_VER="1.5.3"
 DOCKER_IMAGE="xjimmyshcn/golang:${GO_VER}"
+BASE_DIR=$(cd `dirname $0`; pwd)
 
 function quit(){
     echo $1
@@ -56,6 +57,16 @@ function update_vcs(){
     fi
 }
 
+function build_image(){
+  cd ${BASE_DIR}
+  echo "-----------------------------------------------"
+  echo " > start build image ${DOCKER_IMAGE}"
+  docker build -t ${DOCKER_IMAGE} .
+
+  if [ $? -ne 0 ];then
+      quit "docker build failed!"
+  fi
+}
 
 ##### main #####
 _SHELL=$(echo $SHELL | awk -F"/" '{print $NF}')
@@ -84,11 +95,7 @@ download_go
 update_vcs
 
 #build xjimmyshcn/golang:${GO_VER}
-docker build -t ${DOCKER_IMAGE} .
-
-if [ $? -ne 0 ];then
-    quit "docker build failed!"
-fi
+build_image
 
 #start golang container
 #docker run -it --rm -v $GOROOT:/go -v $GOPATH:/root/gopath -e GOPATH=/root/gopath -e GOROOT_BOOTSTRAP=/usr/local/go ${DOCKER_IMAGE}
