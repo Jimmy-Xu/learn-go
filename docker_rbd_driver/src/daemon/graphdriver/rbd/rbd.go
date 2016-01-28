@@ -11,6 +11,7 @@ import (
 	"github.com/opencontainers/runc/libcontainer/label"
 	"github.com/noahdesu/go-ceph/rados"
 	"github.com/noahdesu/go-ceph/rbd"
+	"github.com/docker/docker/pkg/idtools"
 	"os/exec"
 	"strings"
 	"sync"
@@ -65,6 +66,8 @@ type RbdSet struct {
 	filesystem   string
 	mountOptions string
 	mkfsArgs     []string
+	uidMaps      []idtools.IDMap
+	gidMaps      []idtools.IDMap
 }
 
 func (devices *RbdSet) getRbdImageName(hash string) string {
@@ -662,7 +665,7 @@ func (devices *RbdSet) Shutdown() error {
 	return nil
 }
 
-func NewRbdSet(root string, doInit bool, options []string) (*RbdSet, error) {
+func NewRbdSet(root string, doInit bool, options []string, uidMaps, gidMaps []idtools.IDMap) (*RbdSet, error) {
 	conn, _ := rados.NewConn()
 	devices := &RbdSet{
 		MetaData:      MetaData{Devices: make(map[string]*DevInfo)},
@@ -676,6 +679,8 @@ func NewRbdSet(root string, doInit bool, options []string) (*RbdSet, error) {
 		clientId:      "admin",
 		configFile:    DefaultRadosConfigFile,
 		filesystem:    "ext4",
+		uidMaps:       uidMaps,
+		gidMaps:       gidMaps,
 	}
 
 	for _, option := range options {

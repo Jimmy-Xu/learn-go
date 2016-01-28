@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/daemon/graphdriver"
 	"github.com/docker/docker/pkg/mount"
+	"github.com/docker/docker/pkg/idtools"
 	"io/ioutil"
 	"os"
 	"path"
@@ -17,17 +18,19 @@ func init() {
 }
 
 type Driver struct {
-	home string
 	*RbdSet
+	home    string
+	uidMaps []idtools.IDMap
+	gidMaps []idtools.IDMap
 }
 
-func Init(home string, options []string) (graphdriver.Driver, error) {
+func Init(home string, options []string, uidMaps, gidMaps []idtools.IDMap) (graphdriver.Driver, error) {
 	if err := os.MkdirAll(home, 0700); err != nil && !os.IsExist(err) {
 		log.Errorf("Rbd create home dir %s failed: %v", err)
 		return nil, err
 	}
 
-	rbdSet, err := NewRbdSet(home, true, options)
+	rbdSet, err := NewRbdSet(home, true, options, uidMaps, gidMaps)
 	if err != nil {
 		return nil, err
 	}
@@ -38,10 +41,12 @@ func Init(home string, options []string) (graphdriver.Driver, error) {
 
 	d := &Driver{
 		RbdSet: rbdSet,
-		home:   home,
+		home:      home,
+		uidMaps:   uidMaps,
+		gidMaps:   gidMaps,
 	}
 
-	return graphdriver.NaiveDiffDriver(d), nil
+	return graphdriver.NewNaiveDiffDriver(d, uidMaps, gidMaps), nil
 }
 
 func (d *Driver) String() string {
