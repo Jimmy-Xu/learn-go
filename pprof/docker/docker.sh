@@ -132,17 +132,17 @@ function do_build(){
   echo " > modify Dockerfile"
   echo " > create ${DOCKER_BASE}/sources.list "
   cat <<EOF > ${DOCKER_BASE}/sources.list
-      deb http://mirrors.163.com/ubuntu/ trusty main restricted universe multiverse
-      deb http://mirrors.163.com/ubuntu/ trusty-security main restricted universe multiverse
-      deb http://mirrors.163.com/ubuntu/ trusty-updates main restricted universe multiverse
-      deb http://mirrors.163.com/ubuntu/ trusty-proposed main restricted universe multiverse
-      deb http://mirrors.163.com/ubuntu/ trusty-backports main restricted universe multiverse
-      deb-src http://mirrors.163.com/ubuntu/ trusty main restricted universe multiverse
-      deb-src http://mirrors.163.com/ubuntu/ trusty-security main restricted universe multiverse
-      deb-src http://mirrors.163.com/ubuntu/ trusty-updates main restricted universe multiverse
-      deb-src http://mirrors.163.com/ubuntu/ trusty-proposed main restricted universe multiverse
-      deb-src http://mirrors.163.com/ubuntu/ trusty-backports main restricted universe multiverse
-      deb http://security.ubuntu.com/ubuntu trusty-security main
+deb http://mirrors.163.com/ubuntu/ trusty main restricted universe multiverse
+deb http://mirrors.163.com/ubuntu/ trusty-security main restricted universe multiverse
+deb http://mirrors.163.com/ubuntu/ trusty-updates main restricted universe multiverse
+deb http://mirrors.163.com/ubuntu/ trusty-proposed main restricted universe multiverse
+deb http://mirrors.163.com/ubuntu/ trusty-backports main restricted universe multiverse
+deb-src http://mirrors.163.com/ubuntu/ trusty main restricted universe multiverse
+deb-src http://mirrors.163.com/ubuntu/ trusty-security main restricted universe multiverse
+deb-src http://mirrors.163.com/ubuntu/ trusty-updates main restricted universe multiverse
+deb-src http://mirrors.163.com/ubuntu/ trusty-proposed main restricted universe multiverse
+deb-src http://mirrors.163.com/ubuntu/ trusty-backports main restricted universe multiverse
+deb http://security.ubuntu.com/ubuntu trusty-security main
 EOF
   echo " > add sources.list to ${DOCKERFILE}"
   grep 'ADD sources.list /etc/apt/sources.list' ${DOCKERFILE} > /dev/null 2>&1

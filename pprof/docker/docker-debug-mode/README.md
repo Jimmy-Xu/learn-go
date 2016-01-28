@@ -28,7 +28,7 @@ func profilerSetup(mainRouter *mux.Router, path string) {
 ```
 
 # Start docker daemon in debug mode
-> add -D to command line
+> add `-D` to command line
 
 ```shell
 $ /usr/bin/docker daemon -D -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock
@@ -95,7 +95,7 @@ $ go tool pprof http://192.168.1.137:8080/debug/pprof/profile
   (pprof)
 
 //way2
-$    go tool pprof --pdf http://192.168.1.137:8080/debug/pprof/profile > docker_callgraph.pdf
+$ go tool pprof --pdf http://192.168.1.137:8080/debug/pprof/profile > ~/docker_callgraph-pprof.pdf
 ```
 
 ## get symbol
