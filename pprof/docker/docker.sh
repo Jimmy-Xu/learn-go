@@ -177,7 +177,7 @@ EOF
 
   echo "-------------------------------------"
   echo " > start build docker from source"
-  cd ${DOCKER_BASE} && make && cd -
+  cd ${DOCKER_BASE} && DOCKER_DEBUG=true make && cd -
 
   echo "-------------------------------------"
   echo " > show build result"
