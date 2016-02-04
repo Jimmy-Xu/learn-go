@@ -13,7 +13,7 @@ CUR_DIR="$(cd `dirname $0`; pwd)"
 DOCKER_BASE="${GOPATH}/src/github.com/docker/docker"
 DOCKER_SRC="${DOCKER_BASE}/docker/docker.go"
 DOCKERFILE="${DOCKER_BASE}/Dockerfile"
-DOCKER_BUNDLE="${DOCKER_BASE}/bundles/latest/dynbinary/docker"
+DOCKER_BUNDLE="${DOCKER_BASE}/bundles/latest/binary/docker"
 PPROF_FILE="/tmp/docker_cpu.pprof"
 PDF_FILE="${HOME}/docker_callgraph.pdf"
 
