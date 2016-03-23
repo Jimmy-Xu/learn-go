@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"gopkg.in/mgo.v2"
@@ -20,6 +22,14 @@ var (
 )
 
 func main() {
+
+	//enable mgo debug log
+	mgo.SetDebug(true)
+
+	var aLogger *log.Logger
+	aLogger = log.New(os.Stderr, "", log.LstdFlags)
+	mgo.SetLogger(aLogger)
+
 	session, err := mgo.Dial("192.168.1.137")
 	if err != nil {
 		panic(err)
