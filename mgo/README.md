@@ -5,7 +5,7 @@ $ go get gopkg.in/mgo.v2
 
 # update godep
 ```
-$ go save ./....
+$ godep save ./....
 ```
 
 # build
