@@ -5,7 +5,7 @@
     <script type="text/javascript">
          function myWebsocketStart()
          {
-               var ws = new WebSocket("ws://{{$}}:3000/websocket");
+               var ws = new WebSocket("ws://" + location.host + "/websocket");
 
                ws.onopen = function()
                {
