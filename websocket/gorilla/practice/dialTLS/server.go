@@ -7,15 +7,19 @@
 package main
 
 import (
+	"io"
+	"io/ioutil"
+	"fmt"
 	"flag"
 	"html/template"
 	"log"
 	"net/http"
-
+	"crypto/tls"
+	"crypto/x509"
 	"github.com/gorilla/websocket"
 )
 
-var addr = flag.String("addr", ":8888", "http service address")
+var addr = flag.String("addr", "8888", "http service address")
 
 var upgrader = websocket.Upgrader{} // use default options
 
@@ -45,12 +49,46 @@ func home(w http.ResponseWriter, r *http.Request) {
 	homeTemplate.Execute(w, "wss://"+r.Host+"/echo")
 }
 
+type myHandler struct{}
+
+func (*myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if h, ok := mux[r.URL.String()]; ok {
+		h(w, r)
+		return
+	}
+	io.WriteString(w, "My server: "+r.URL.String())
+}
+
+var mux map[string]func(http.ResponseWriter, *http.Request)
+
+
+
 func main() {
 	flag.Parse()
 	log.SetFlags(0)
-	http.HandleFunc("/echo", echo)
-	http.HandleFunc("/", home)
-	log.Fatal(http.ListenAndServeTLS(*addr,"ssl/server.crt", "ssl/server.key", nil))
+
+	pool := x509.NewCertPool()
+	caCertPath := "ssl/ca.crt"
+	caCrt, err := ioutil.ReadFile(caCertPath)
+	if err != nil {
+			fmt.Println("ReadFile err:", err)
+			return
+	}
+	pool.AppendCertsFromPEM(caCrt)
+
+	s := &http.Server{
+     Addr:    ":8888",
+     Handler: &myHandler{},
+     TLSConfig: &tls.Config{
+       ClientCAs:  pool,
+       ClientAuth: tls.RequireAndVerifyClientCert,
+  	 },
+  }
+	mux = make(map[string]func(http.ResponseWriter, *http.Request))
+	mux["/"] = home
+	mux["/echo"] = echo
+
+	log.Fatal(s.ListenAndServeTLS("ssl/server.crt", "ssl/server.key"))
 }
 
 var homeTemplate = template.Must(template.New("").Parse(`

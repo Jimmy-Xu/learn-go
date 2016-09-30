@@ -7,8 +7,11 @@
 package main
 
 import (
+	"io/ioutil"
 	"crypto/tls"
+	"crypto/x509"
 	"flag"
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -19,7 +22,7 @@ import (
 )
 
 
-var addr = flag.String("addr", "127.0.0.1:8888", "http service address")
+var addr = flag.String("addr", "localhost:8888", "http service address")
 
 func main() {
 	flag.Parse()
@@ -31,8 +34,26 @@ func main() {
 	u := url.URL{Scheme: "wss", Host: *addr, Path: "/echo"}
 	log.Printf("connecting to %s", u.String())
 
+  //load ca
+	pool := x509.NewCertPool()
+  caCertPath := "ssl/ca.crt"
+  caCrt, err := ioutil.ReadFile(caCertPath)
+  if err != nil {
+      fmt.Println("ReadFile err:", err)
+      return
+  }
+  pool.AppendCertsFromPEM(caCrt)
+
+//load client cert
+	cliCrt, err := tls.LoadX509KeyPair("ssl/client.crt", "ssl/client.key")
+	if err != nil {
+			fmt.Println("Loadx509keypair err:", err)
+			return
+	}
+
 	config := &tls.Config{
-		InsecureSkipVerify: true,
+		RootCAs:      pool,
+    Certificates: []tls.Certificate{cliCrt},
 	}
 	dialer := websocket.Dialer{
 		TLSClientConfig: config,
