@@ -6,7 +6,7 @@
      - change header X-AMZ- to X-Hyper-
      - changed normuri, treat // as /
 */
-package main
+package sign4
 
 import (
 	"bytes"
