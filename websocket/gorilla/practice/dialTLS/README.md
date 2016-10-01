@@ -48,3 +48,11 @@ Open Web Browser:
   https://$:8888
 
 ==================================================
+
+- SSL
+- Authentication
+- Sign4
+
+
+http://stackoverflow.com/questions/29324251/gorilla-websocket-with-cookie-authentication
+https://github.com/gorilla/websocket/blob/master/client_server_test.go#L322

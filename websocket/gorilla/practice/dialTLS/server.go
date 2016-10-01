@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build ignore
-
 package main
 
 import (
@@ -24,6 +22,18 @@ var addr = flag.String("addr", "8888", "http service address")
 var upgrader = websocket.Upgrader{} // use default options
 
 func echo(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println("\n--------------------------------------------------------------------------------------------")
+	fmt.Println("--------------------------------------------------------------------------------------------")
+	fmt.Println("curl -v -k \\")
+	for k, v := range r.Header {
+		fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
+	}
+	fmt.Printf("  -X %v \\\n",  r.Method)
+
+	fmt.Printf("  wss://%v%v\n", r.Host, r.RequestURI)
+	fmt.Println("--------------------------------------------------------------------------------------------")
+
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Print("upgrade:", err)
@@ -46,7 +56,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
-	homeTemplate.Execute(w, "wss://"+r.Host+"/echo")
+	homeTemplate.Execute(w, "wss://" + r.Host + "/echo")
 }
 
 type myHandler struct{}
@@ -56,12 +66,10 @@ func (*myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h(w, r)
 		return
 	}
-	io.WriteString(w, "My server: "+r.URL.String())
+	io.WriteString(w, "My server: " + r.URL.String())
 }
 
 var mux map[string]func(http.ResponseWriter, *http.Request)
-
-
 
 func main() {
 	flag.Parse()
@@ -71,19 +79,19 @@ func main() {
 	caCertPath := "ssl/ca.crt"
 	caCrt, err := ioutil.ReadFile(caCertPath)
 	if err != nil {
-			fmt.Println("ReadFile err:", err)
-			return
+		fmt.Println("ReadFile err:", err)
+		return
 	}
 	pool.AppendCertsFromPEM(caCrt)
 
 	s := &http.Server{
-     Addr:    ":8888",
-     Handler: &myHandler{},
-     TLSConfig: &tls.Config{
-       ClientCAs:  pool,
-       ClientAuth: tls.RequireAndVerifyClientCert,
-  	 },
-  }
+		Addr:    ":8888",
+		Handler: &myHandler{},
+		TLSConfig: &tls.Config{
+			ClientCAs:  pool,
+			ClientAuth: tls.RequireAndVerifyClientCert,
+		},
+	}
 	mux = make(map[string]func(http.ResponseWriter, *http.Request))
 	mux["/"] = home
 	mux["/echo"] = echo
