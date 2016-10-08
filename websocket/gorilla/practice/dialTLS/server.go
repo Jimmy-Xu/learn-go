@@ -25,13 +25,17 @@ func echo(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("\n--------------------------------------------------------------------------------------------")
 	fmt.Println("--------------------------------------------------------------------------------------------")
-	fmt.Println("curl -v -k \\")
+	fmt.Println("curl -v \\")
 	for k, v := range r.Header {
 		fmt.Printf("  -H \"%v: %v\" \\\n", k, v[0])
 	}
 	fmt.Printf("  -X %v \\\n",  r.Method)
 
-	fmt.Printf("  wss://%v%v\n", r.Host, r.RequestURI)
+	fmt.Printf("  --cacert ssl/ca.crt \\\n")
+	fmt.Printf("  --cert ssl/client.crt \\\n")
+	fmt.Printf("  --key ssl/client.key \\\n")
+
+	fmt.Printf("  https://%v%v\n", r.Host, r.RequestURI)
 	fmt.Println("--------------------------------------------------------------------------------------------")
 
 	c, err := upgrader.Upgrade(w, r, nil)
