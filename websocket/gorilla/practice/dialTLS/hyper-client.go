@@ -2,8 +2,8 @@ package main
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"flag"
-	"fmt"
 	SignUtil "github.com/Jimmy-Xu/learn-go/websocket/gorilla/practice/dialTLS/util"
 	"github.com/gorilla/websocket"
 	"log"
@@ -34,12 +34,13 @@ func main() {
 		TLSClientConfig: config,
 	}
 
-	fmt.Printf("URL:%v\n", u.String())
+	//fmt.Printf("URL:%v\n", u.String())
 	req, err := http.NewRequest("GET", u.String(), nil)
 	req.URL = &u
 
 	accessKey := "6DVNAWRWDP6NUVGEOLKGJ9YV"
 	secretKey := "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
 	req = SignUtil.Sign4(accessKey, secretKey, req)
 
 	c, _, err := dialer.Dial(u.String(), req.Header)
@@ -59,7 +60,19 @@ func main() {
 				log.Println("read:", err)
 				return
 			}
-			log.Printf("recv: %s", message)
+			//show raw result
+			//log.Printf("recv: %s", message)
+
+			//show pretty result
+			var dat map[string]interface{}
+			if err := json.Unmarshal([]byte(message), &dat); err != nil {
+				panic(err)
+			}
+			b, err := json.MarshalIndent(dat, "", "  ")
+			if err != nil {
+				panic(err)
+			}
+			log.Printf("recv[json]: %v\n\n", string(b[:]))
 		}
 	}()
 
@@ -68,12 +81,12 @@ func main() {
 
 	for {
 		select {
-		case t := <-ticker.C:
-			err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
-			if err != nil {
-				log.Println("write:", err)
-				return
-			}
+		// case t := <-ticker.C:
+		// 	err := c.WriteMessage(websocket.TextMessage, []byte(t.String()))
+		// 	if err != nil {
+		// 		log.Println("write:", err)
+		// 		return
+		// 	}
 		case <-interrupt:
 			log.Println("interrupt")
 			// To cleanly close a connection, a client should send a close
