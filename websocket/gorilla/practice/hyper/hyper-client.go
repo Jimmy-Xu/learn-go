@@ -80,7 +80,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			log.Printf("recv[json]: %v\n\n", string(b[:]))
+			log.Printf("receive event: %v\n\n", string(b[:]))
 		}
 	}()
 

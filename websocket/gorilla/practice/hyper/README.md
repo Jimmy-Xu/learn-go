@@ -7,13 +7,23 @@ websocket client for hyper
 - Sign4: Use util/sign4.go
 
 # REF:
-http://stackoverflow.com/questions/29324251/gorilla-websocket-with-cookie-authentication
-https://github.com/gorilla/websocket/blob/master/client_server_test.go#L322
 
+- WebSocket:
+  - http://stackoverflow.com/questions/29324251/gorilla-websocket-with-cookie-authentication
+  - https://github.com/gorilla/websocket/blob/master/client_server_test.go#L322
+- Watch:
+  - https://github.com/kubernetes/kubernetes/blob/master/pkg/client/cache/reflector.go#L362
+- Browser aws4 example
+  - https://github.com/mhart/aws4/tree/master/browser
 
 # Usage
 ```
+//server
+https://github.com/getdvm/hyper-api-router/pull/298
+
 //client
+$ go get github.com/Jimmy-Xu/learn-go/websocket/gorilla/practice/hyper
+$ cd $GOPATH/src/github.com/Jimmy-Xu/learn-go/websocket/gorilla/practice/hyper
 $ go run hyper-client.go --accessKey KXARxxxxxxxxxxxxx5WR8 --secretKey Ema5xxxxxxxxxxxxxxxxxxxxxxxxxxxZgNe
 connecting to wss://147.75.195.37:6443/events/ws
 recv[json]: {
