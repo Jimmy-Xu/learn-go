@@ -14,11 +14,12 @@ import (
 	"time"
 )
 
-
 var addr = flag.String("addr", "147.75.195.37:6443", "http service address")
 var accessKey = flag.String("accessKey", "", "hyper access key")
 var secretKey = flag.String("secretKey", "", "hyper secret key")
-var u = url.URL{Scheme: "wss", Host: *addr, Path: "/events/ws"}
+//var queryParam = "filters={\"container\":{\"test1\":true,\"test2\":true}}"
+var queryParam = "filters={\"container\":{\"5340b21b680aac7d43aa7b1d52a4eb103f030dc682974148bc376286ad0c2008\":true}}"
+var u = url.URL{Scheme: "wss", Host: *addr, Path: "/events/ws", RawQuery: queryParam}
 
 func main() {
 	flag.Parse()
@@ -37,10 +38,9 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
-	log.Printf("connecting to %s", u.String())
-
 	//add sign to header
 	req, err := http.NewRequest("GET", u.String(), nil)
+	log.Printf("connecting to %s", req.URL.RequestURI())
 	req.URL = &u
 	req = SignUtil.Sign4(*accessKey, *secretKey, req)
 

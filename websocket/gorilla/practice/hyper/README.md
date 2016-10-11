@@ -13,8 +13,12 @@ websocket client for hyper
   - https://github.com/gorilla/websocket/blob/master/client_server_test.go#L322
 - Watch:
   - https://github.com/kubernetes/kubernetes/blob/master/pkg/client/cache/reflector.go#L362
+  - https://github.com/kubernetes/kubernetes/blob/master/pkg/apiserver/watch_test.go
 - Browser aws4 example
   - https://github.com/mhart/aws4/tree/master/browser
+- Parse Query Parameter - filters
+  - https://github.com/docker/engine-api/blob/master/types/filters/parse_test.go
+  - http://fossies.org/linux/kubernetes/pkg/registry/pod/strategy_test.go
 
 # Usage
 ```
