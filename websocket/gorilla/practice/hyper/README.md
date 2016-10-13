@@ -19,6 +19,8 @@ websocket client for hyper
 - Parse Query Parameter - filters
   - https://github.com/docker/engine-api/blob/master/types/filters/parse_test.go
   - http://fossies.org/linux/kubernetes/pkg/registry/pod/strategy_test.go
+- Event
+  - https://github.com/docker/engine-api/blob/master/client/events_test.go#L56
 
 # Usage
 ```
@@ -57,4 +59,16 @@ $ go run hyper-client.go --accessKey xxxxxxxxxxxxx --secretKey xxxxxxxxxxxxx
 connecting to wss://147.75.195.37:6443/events/ws
 dial:websocket: bad handshake
 exit status 1
+```
+
+### how to use filters query parameter in curl
+
+REF: http://stackoverflow.com/questions/15425446/how-to-put-a-json-object-with-an-array-using-curl/26407256#26407256
+```
+$ curl -g 'http://127.0.0.1:2375/events?filters={"label":{"test1":true,"test2=test2","test3=test3=test3":true}}'
+
+- "test1":true 表示存在key是test1的label
+- "test1=":true 表示表示key为test1的label的value为""，精确匹配
+- "test1=aaa":true 表示表示key为test1的label的value为"aaa"，精确匹配
+- 多个label之间是与的关系
 ```

@@ -343,4 +343,19 @@ recv[json]: {
 5: PodIP(string)=172.16.0.32
 6: StartTime(ptr)=<*unversioned.Time Value>
 7: ContainerStatuses(slice)=<[]api.ContainerStatus Value>
+-------------------- db.Container --------------------
+0: ID(string)=955fb7fed391d325bed5b7f85c05824e3bd035b0f5d9aa30ca87c6169d075148
+1: Name(string)=/test
+2: Pod(string)=955fb7fed391d325bed5b7f85c05824e3bd035b0f5d9aa30ca87c6169d075148
+3: Namespace(string)=0b1318054bfe440a97e8258ce8d92d47-bridge
+4: PublicIP(string)=
+5: Tenant(string)=0b1318054bfe440a97e8258ce8d92d47
+6: Alias(map)=<map[string]string Value>
+7: Links(map)=<map[string]*links.Link Value>
+8: Volumes(slice)=<[]*volume.Volume Value>
+9: Base(ptr)=<*types.ContainerJSON Value>
+10: Restart(ptr)=<*container.RestartCtrl Value>
+11: Updating(bool)=<bool Value>
+12: Attaching(bool)=<bool Value>
+dbContainer.Base.Image: sha256:e02e811dd08fd49e7f6032625495118e63f597eb150403d02e3238af1df240ba
 ```

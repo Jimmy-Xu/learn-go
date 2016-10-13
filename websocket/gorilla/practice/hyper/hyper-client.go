@@ -4,34 +4,37 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"flag"
-	SignUtil "github.com/Jimmy-Xu/learn-go/websocket/gorilla/practice/hyper/util"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
-	"time"
+
+	SignUtil "github.com/Jimmy-Xu/learn-go/websocket/gorilla/practice/hyper/util"
+	"github.com/gorilla/websocket"
 )
 
-var addr = flag.String("addr", "147.75.195.37:6443", "http service address")
-var accessKey = flag.String("accessKey", "", "hyper access key")
-var secretKey = flag.String("secretKey", "", "hyper secret key")
-//var queryParam = "filters={\"container\":{\"test1\":true,\"test2\":true}}"
-var queryParam = "filters={\"container\":{\"5340b21b680aac7d43aa7b1d52a4eb103f030dc682974148bc376286ad0c2008\":true}}"
-var u = url.URL{Scheme: "wss", Host: *addr, Path: "/events/ws", RawQuery: queryParam}
-
 func main() {
+
+	//command line argument
+	var addr = flag.String("addr", "147.75.195.37:6443", "apirouter entrypoint")
+	var accessKey = flag.String("accessKey", "", "hyper access key")
+	var secretKey = flag.String("secretKey", "", "hyper secret key")
+	var pretty = flag.Bool("pretty", false, "pretty print result")
+
+	//query parameter - format: "filters={\"param1\":{\"value1\":true,\"value2\":true}}"
+	//var queryParam = "filters={\"container\":{\"955fb7fed391d325bed5b7f85c05824e3bd035b0f5d9aa30ca87c6169d075148\":true}}"
+	//var queryParam = "filters={\"image\":{\"e02e811dd08fd49e7f6032625495118e63f597eb150403d02e3238af1df240ba\":true}}"
+	//var queryParam = "filters={\"event\":{\"start\":true}}"
+	var queryParam = "filters={\"label\":{\"\":true,\"test1\":true,\"test2=test2\":true,\"test3=test3=test3\":true}}"
+	var u = url.URL{Scheme: "wss", Host: *addr, Path: "/events/ws", RawQuery: queryParam}
+
 	flag.Parse()
 	log.SetFlags(0)
 
 	//check accessKey and secretKey
-	if *accessKey == "" {
-		log.Printf("accessKey can not be empty!")
-		return
-	}
-	if *secretKey == "" {
-		log.Printf("secretKey can not be empty!")
+	if *accessKey == "" || *secretKey == "" {
+		log.Printf("Please specify 'accessKey' and 'secretKey'!")
 		return
 	}
 
@@ -40,7 +43,8 @@ func main() {
 
 	//add sign to header
 	req, err := http.NewRequest("GET", u.String(), nil)
-	log.Printf("connecting to %s", req.URL.RequestURI())
+	log.Printf("connecting to %s://%s%s", req.URL.Scheme, req.Host, req.URL.RequestURI())
+	//log.Printf("query: %v", req.URL.Query())
 	req.URL = &u
 	req = SignUtil.Sign4(*accessKey, *secretKey, req)
 
@@ -51,55 +55,55 @@ func main() {
 	dialer := websocket.Dialer{
 		TLSClientConfig: config,
 	}
-	c, _, err := dialer.Dial(u.String(), req.Header)
+	ws, resp, err := dialer.Dial(u.String(), req.Header)
 	if err != nil {
-		log.Fatal("dial:", err)
+		log.Fatal("Error:", err)
 	}
-	defer c.Close()
-	done := make(chan struct{})
+	if resp.StatusCode == http.StatusSwitchingProtocols {
+		log.Printf("connected, watching event now:")
+	} else {
+		log.Printf("Unexpected HTTP Status Code: %v\n", resp.StatusCode)
+		return
+	}
+
+	defer ws.Close()
 
 	//process websocket message
 	go func() {
-		defer c.Close()
-		defer close(done)
+		defer ws.Close()
+	loop:
 		for {
-			_, message, err := c.ReadMessage()
+			_, message, err := ws.ReadMessage()
 			if err != nil {
-				log.Println("read:", err)
-				return
+				log.Println("Error:", err)
+				break loop
 			}
-			//way1: show raw result
-			//log.Printf("recv: %s", message)
-
-			//way2: show pretty result
-			var dat map[string]interface{}
-			if err := json.Unmarshal([]byte(message), &dat); err != nil {
-				panic(err)
+			if *pretty {
+				var dat map[string]interface{}
+				if err := json.Unmarshal([]byte(message), &dat); err != nil {
+					panic(err)
+				}
+				b, err := json.MarshalIndent(dat, "", "  ")
+				if err != nil {
+					panic(err)
+				}
+				log.Printf("%v\n\n", string(b[:]))
+			} else {
+				log.Printf("%s", message)
 			}
-			b, err := json.MarshalIndent(dat, "", "  ")
-			if err != nil {
-				panic(err)
-			}
-			log.Printf("receive event: %v\n\n", string(b[:]))
 		}
 	}()
 
 	for {
 		select {
 		case <-interrupt:
-			log.Println("interrupt")
-			// To cleanly close a connection, a client should send a close
-			// frame and wait for the server to close the connection.
-			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			log.Println("Interrupt by Ctrl+C")
+			err := ws.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 			if err != nil {
-				log.Println("write close:", err)
+				//log.Println("write close:", err)
 				return
 			}
-			select {
-			case <-done:
-			case <-time.After(time.Second):
-			}
-			c.Close()
+			ws.Close()
 			return
 		}
 	}
