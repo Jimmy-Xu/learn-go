@@ -1,5 +1,13 @@
 package main
 
+/*
+SDK: https://github.com/google/google-api-go-client
+REF:
+ - https://cloud.google.com/compute/docs/reference/beta/disks/list#examples
+ - https://cloud.google.com/compute/docs/reference/latest/disks/list#example
+ - https://godoc.org/google.golang.org/api/compute/v1#DisksListCall.Filter
+*/
+
 // BEFORE RUNNING:
 // ---------------
 // 1. If not already done, enable the Compute Engine API
@@ -29,6 +37,7 @@ var (
 	project = flag.String("project", "hyper-test-142007", "project name")
 	zone    = flag.String("zone", "asia-east1-a", "zone name")
 	disk    = flag.String("disk", "test_disk_api", "disk name")
+	filter  = flag.String("filter", "", "filter expression for filtering listed resources")
 	create  = flag.Bool("create", false, "create new disk or not")
 )
 
@@ -56,7 +65,7 @@ func main() {
 
 func listDisk(ctx context.Context, computeService *compute.Service) error {
 	req := computeService.Disks.List(*project, *zone)
-	if err := req.Pages(ctx, func(page *compute.DiskList) error {
+	if err := req.Filter(*filter).Pages(ctx, func(page *compute.DiskList) error {
 		fmt.Printf("there are %v disk in zone:%v\n", len(page.Items), *zone)
 		for _, disk := range page.Items {
 			diskJson, err := json.MarshalIndent(disk, "", "\t")
