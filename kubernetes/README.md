@@ -22,4 +22,6 @@ $ screen -S kubectl-proxy -L -d -m bash -c "kubectl proxy"
 //run
 $ ./main --host=http://127.0.0.1:8001
 
+//run with more log
+$ ./main --host=http://127.0.0.1:8001 -v 4 -logtostderr
 ```

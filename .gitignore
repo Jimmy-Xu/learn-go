@@ -1,2 +1,5 @@
+.idea
 *.pprof
 *.pdf
+gcp/disk
+kubernetes/main
