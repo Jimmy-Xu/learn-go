@@ -14,6 +14,8 @@ import (
 )
 
 func main() {
+	host := flag.String("host", "", "kubernetes server")
+
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -26,6 +28,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	if *host != "" {
+		config.Host = *host
+	}
+	fmt.Printf("host:%v\n", config.Host)
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		panic(err)
