@@ -24,8 +24,10 @@ import (
 	"io"
 	"io/ioutil"
 	"mime"
+	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"reflect"
 	"strconv"
@@ -39,11 +41,16 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer/streaming"
-	"k8s.io/apimachinery/pkg/util/net"
+	k8snet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/apimachinery/pkg/watch"
 	restclientwatch "k8s.io/client-go/rest/watch"
 	"k8s.io/client-go/tools/metrics"
 	"k8s.io/client-go/util/flowcontrol"
+
+	"crypto/tls"
+	"github.com/hyperhq/hyper-api/signature"
+	"github.com/hyperhq/hypercli/pkg/tlsconfig"
+	"net/http/httputil"
 )
 
 var (
@@ -519,7 +526,7 @@ func (r *Request) Watch() (watch.Interface, error) {
 	if err != nil {
 		// The watch stream mechanism handles many common partial data errors, so closed
 		// connections can be retried in many cases.
-		if net.IsProbableEOF(err) {
+		if k8snet.IsProbableEOF(err) {
 			return watch.NewEmptyWatch(), nil
 		}
 		return nil, err
@@ -644,6 +651,12 @@ func (r *Request) request(fn func(*http.Request, *http.Response)) error {
 	retries := 0
 	for {
 		url := r.URL().String()
+
+		//patch1: remove url prefix "/api"
+		if strings.Contains(url, "tcp://") {
+			url = strings.Replace(url, "/api/v1", "/v1", 1)
+		}
+
 		req, err := http.NewRequest(r.verb, url, r.body)
 		if err != nil {
 			return err
@@ -651,7 +664,44 @@ func (r *Request) request(fn func(*http.Request, *http.Response)) error {
 		if r.ctx != nil {
 			req = req.WithContext(r.ctx)
 		}
+
 		req.Header = r.headers
+
+		//patch2: add sign header for apirouter
+		for k, v := range r.headers {
+			glog.V(4).Infof("(before)Header: %v=%v", k, v)
+		}
+		accessKey := os.Getenv("HYPER_ACCESS_KEY")
+		secretKey := os.Getenv("HYPER_SECRET_KEY")
+		region := os.Getenv("HYPER_REGION")
+		req = signature.Sign4(accessKey, secretKey, req, region)
+		if glog.V(4) {
+			for k, v := range req.Header {
+				glog.Infof("(after)Header: %v=%v", k, v)
+			}
+			glog.Infof("%v - %v", req.Method, req.URL.String())
+			glog.Infof("Host: %v", req.URL.Host)
+			glog.Infof("Scheme: %v", req.URL.Scheme)
+		}
+
+		//patch3: set InsecureSkipVerify
+		if req.URL.Scheme == "tcp" && strings.Contains(req.URL.Port(), "443") {
+			tlsConfig, err := tlsconfig.Client(tlsconfig.Options{
+				InsecureSkipVerify: true,
+			})
+			if err != nil {
+				return fmt.Errorf("create TLS configuration error: %v", err)
+			}
+			timeout := time.Duration(10 * time.Second)
+			dialer := &net.Dialer{Timeout: timeout}
+			conn, err := tls.DialWithDialer(dialer, req.URL.Scheme, req.URL.Host, tlsConfig)
+			if err != nil {
+				err = fmt.Errorf("dial with dialer error: %v", err)
+				glog.Error(err)
+				return err
+			}
+			client = httputil.NewClientConn(conn, nil)
+		}
 
 		r.backoffMgr.Sleep(r.backoffMgr.CalculateBackoff(r.URL()))
 		if retries > 0 {
@@ -660,6 +710,7 @@ func (r *Request) request(fn func(*http.Request, *http.Response)) error {
 			// This request should also be throttled with the client-internal throttler.
 			r.tryThrottle()
 		}
+
 		resp, err := client.Do(req)
 		updateURLMetrics(r, resp, err)
 		if err != nil {
@@ -672,7 +723,7 @@ func (r *Request) request(fn func(*http.Request, *http.Response)) error {
 			// Thus in case of "GET" operations, we simply retry it.
 			// We are not automatically retrying "write" operations, as
 			// they are not idempotent.
-			if !net.IsConnectionReset(err) || r.verb != "GET" {
+			if !k8snet.IsConnectionReset(err) || r.verb != "GET" {
 				return err
 			}
 			// For the purpose of retry, we set the artificial "retry-after" response.

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/golang/glog"
 	apiv1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -32,14 +33,21 @@ func main() {
 	if *host != "" {
 		config.Host = *host
 	}
-	fmt.Printf("host:%v\n", config.Host)
+
+	glog.V(4).Infof("host: %v\n", config.Host)
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		panic(err)
 	}
 	opts := meta_v1.ListOptions{}
 	podList, err := clientset.CoreV1().Pods(apiv1.NamespaceDefault).List(opts)
-
-	buf, err := json.MarshalIndent(*podList, "", " ")
-	fmt.Printf("podList:\n%v\n", string(buf))
+	if err != nil {
+		glog.Errorf("get pod list error: %v", err)
+	} else {
+		buf, err := json.MarshalIndent(*podList, "", " ")
+		if err != nil {
+			glog.Errorf("result format error: %v", err)
+		}
+		fmt.Printf("podList:\n%v\n", string(buf))
+	}
 }
