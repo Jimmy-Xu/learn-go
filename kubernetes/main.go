@@ -15,7 +15,8 @@ import (
 )
 
 func main() {
-	host := flag.String("host", "", "kubernetes server")
+	host := flag.String("host", "", "apiserver, format http://x.x.x.x:8001, tcp://x.x.x.x:6443")
+	action := flag.String("action", "list", "list, create")
 
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
@@ -39,6 +40,49 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	switch *action {
+	case "list":
+		listPod(err, clientset)
+	case "create":
+		createPod(err, clientset)
+	default:
+		fmt.Printf("unsupport action:%v\n", *action)
+	}
+}
+func createPod(err error, clientset *kubernetes.Clientset) {
+	podStr := `{
+			  "apiVersion": "v1",
+			  "kind": "Pod",
+			  "metadata": {
+				"name": "nginx5"
+			  },
+			  "spec": {
+				"containers": [
+				  {
+					"name": "nginx",
+					"image": "nginx:1.7.9",
+					"ports": [
+					  {
+						"containerPort": 8000
+					  }
+					]
+				  }
+				]
+			  }
+			}`
+	var podData apiv1.Pod
+	json.Unmarshal([]byte(podStr), &podData)
+	podResp, err := clientset.CoreV1().Pods(apiv1.NamespaceDefault).Create(&podData)
+	if err != nil {
+		fmt.Printf("create pod error:%v\n", err)
+		return
+	}
+	buf, err := json.MarshalIndent(podResp, "", "  ")
+	fmt.Printf("create pod result:\n%v\n", string(buf))
+}
+
+func listPod(err error, clientset *kubernetes.Clientset) {
 	opts := meta_v1.ListOptions{}
 	podList, err := clientset.CoreV1().Pods(apiv1.NamespaceDefault).List(opts)
 	if err != nil {
