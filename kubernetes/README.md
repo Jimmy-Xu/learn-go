@@ -7,6 +7,28 @@ $ go build main.go
 
 # usage
 
+## available action
+
+```
+create-pod
+get-pod
+list-pod
+update-pod
+delete-pod
+
+list-node
+
+create-pv
+get-pv
+list-pv
+delete-pv
+
+create-pvc
+get-pvc
+list-pvc
+delete-pvc
+```
+
 ## read config from ~/.kube/config
 
 ```

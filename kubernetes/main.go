@@ -18,6 +18,8 @@ func main() {
 	server := flag.String("server", "", "apiserver, format http://x.x.x.x:8001, tcp://x.x.x.x:6443")
 	action := flag.String("action", "list-pod", "create-pod,list-pod,get-pod,update-pod,delete-pod,list-node")
 	podName := flag.String("pod-name", "test-nginx", "pod name")
+	pvName := flag.String("pv-name", "test-pv", "PersistentVolume name")
+	pvcName := flag.String("pvc-name", "test-pvc", "PersistentVolumeClaim name")
 
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
@@ -43,6 +45,7 @@ func main() {
 	}
 
 	switch *action {
+	//pod
 	case "create-pod":
 		createPod(*podName, clientset)
 	case "get-pod":
@@ -53,12 +56,33 @@ func main() {
 		updatePod(*podName, clientset)
 	case "list-pod":
 		listPod(clientset)
+	//node
 	case "list-node":
 		listNode(clientset)
+	//pv
+	case "create-pv":
+		createPersistentVolume(*pvName, clientset)
+	case "get-pv":
+		getPersistentVolume(*pvName, clientset)
+	case "delete-pv":
+		deletePersistentVolume(*pvName, clientset)
+	case "list-pv":
+		listPersistentVolume(clientset)
+	//pvc
+	case "create-pvc":
+		createPersistentVolumeClaim(*pvcName, clientset)
+	case "get-pvc":
+		getPersistentVolumeClaim(*pvcName, clientset)
+	case "delete-pvc":
+		deletePersistentVolumeClaim(*pvcName, clientset)
+	case "list-pvc":
+		listPersistentVolumeClaim(clientset)
+	//other
 	default:
 		fmt.Printf("unsupport action:%v\n", *action)
 	}
 }
+
 func createPod(name string, clientset *kubernetes.Clientset) {
 	var err error
 	podStr := `{
@@ -150,6 +174,135 @@ func listNode(clientset *kubernetes.Clientset) {
 		glog.Errorf("get node list error: %v", err)
 	} else {
 		printJson(*nodeList)
+	}
+}
+
+func createPersistentVolume(name string, clientset *kubernetes.Clientset) {
+	var err error
+	pvStr := `{
+	  "apiVersion": "v1",
+	  "kind": "PersistentVolume",
+	  "metadata": {
+		"name": "pv-1"
+	  },
+	  "spec": {
+		"accessModes": [
+		  "ReadWriteOnce"
+		],
+		"capacity": {
+		  "storage": "1Gi"
+		},
+		"hostPath": {
+		  "path": "/tmp/pv-1",
+		  "type": ""
+		}
+	  }
+	}`
+	var pvData apiv1.PersistentVolume
+	json.Unmarshal([]byte(pvStr), &pvData)
+	pvData.Name = name
+	pvData.Spec.HostPath.Path = fmt.Sprintf("/tmp/%v", name)
+	pvResp, err := clientset.CoreV1().PersistentVolumes().Create(&pvData)
+	if err != nil {
+		fmt.Printf("create pv %v error:%v\n", name, err)
+		return
+	}
+	printJson(pvResp)
+}
+
+func listPersistentVolume(clientset *kubernetes.Clientset) {
+	var err error
+	opts := meta_v1.ListOptions{}
+	pvList, err := clientset.CoreV1().PersistentVolumes().List(opts)
+	if err != nil {
+		glog.Errorf("get pv list error: %v", err)
+	} else {
+		printJson(*pvList)
+	}
+}
+
+func getPersistentVolume(name string, clientset *kubernetes.Clientset) {
+	var err error
+	opts := meta_v1.GetOptions{}
+	pvInfo, err := clientset.CoreV1().PersistentVolumes().Get(name, opts)
+	if err != nil {
+		glog.Errorf("get pv %v error: %v", name, err)
+	} else {
+		printJson(*pvInfo)
+	}
+}
+
+func deletePersistentVolume(name string, clientset *kubernetes.Clientset) {
+	var err error
+	opts := meta_v1.DeleteOptions{}
+	err = clientset.CoreV1().PersistentVolumes().Delete(name, &opts)
+	if err != nil {
+		glog.Errorf("delete pv error: %v", err)
+	} else {
+		fmt.Printf("pv %v deleted", name)
+	}
+}
+
+func createPersistentVolumeClaim(name string, clientset *kubernetes.Clientset) {
+	var err error
+	pvcStr := `{
+	  "apiVersion": "v1",
+	  "kind": "PersistentVolumeClaim",
+	  "metadata": {
+		"name": "pvc-1"
+	  },
+	  "spec": {
+		"accessModes": [
+		  "ReadWriteOnce"
+		],
+		"resources": {
+		  "requests": {
+			"storage": "1Gi"
+			}
+		}
+	  }
+	}`
+	var pvcData apiv1.PersistentVolumeClaim
+	json.Unmarshal([]byte(pvcStr), &pvcData)
+	pvcData.Name = name
+	pvcResp, err := clientset.CoreV1().PersistentVolumeClaims(apiv1.NamespaceDefault).Create(&pvcData)
+	if err != nil {
+		fmt.Printf("create pvc %v error:%v\n", name, err)
+		return
+	}
+	printJson(pvcResp)
+}
+
+func listPersistentVolumeClaim(clientset *kubernetes.Clientset) {
+	var err error
+	opts := meta_v1.ListOptions{}
+	pvcList, err := clientset.CoreV1().PersistentVolumeClaims(apiv1.NamespaceDefault).List(opts)
+	if err != nil {
+		glog.Errorf("get pvc list error: %v", err)
+	} else {
+		printJson(*pvcList)
+	}
+}
+
+func getPersistentVolumeClaim(name string, clientset *kubernetes.Clientset) {
+	var err error
+	opts := meta_v1.GetOptions{}
+	pvcInfo, err := clientset.CoreV1().PersistentVolumeClaims(apiv1.NamespaceDefault).Get(name, opts)
+	if err != nil {
+		glog.Errorf("get pvc %v error: %v", name, err)
+	} else {
+		printJson(*pvcInfo)
+	}
+}
+
+func deletePersistentVolumeClaim(name string, clientset *kubernetes.Clientset) {
+	var err error
+	opts := meta_v1.DeleteOptions{}
+	err = clientset.CoreV1().PersistentVolumeClaims(apiv1.NamespaceDefault).Delete(name, &opts)
+	if err != nil {
+		glog.Errorf("delete pvc error: %v", err)
+	} else {
+		fmt.Printf("pvc %v deleted", name)
 	}
 }
 
