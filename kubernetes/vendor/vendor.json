@@ -15,6 +15,11 @@
 			"revisionTime": "2017-08-10T14:37:23Z"
 		},
 		{
+			"checksumSHA1": "Bs/PvN8oDCjaW9r7f01JEZRQQJA=",
+			"path": "github.com/Sirupsen/logrus",
+			"revision": ""
+		},
+		{
 			"checksumSHA1": "TYSGkh0h648wwbQv+qmqMcqNP4Y=",
 			"path": "github.com/emicklei/go-restful",
 			"revision": "2dd44038f0b95ae693b266c5f87593b5d2fdd78d",
@@ -145,6 +150,18 @@
 			"path": "github.com/howeyc/gopass",
 			"revision": "f031b2af1463b337449834961fd74bd639fffe6d",
 			"revisionTime": "2018-01-13T09:26:24Z"
+		},
+		{
+			"checksumSHA1": "Rb6Flop8i9ltxTqv2whu4s8hxFk=",
+			"path": "github.com/hyperhq/hyper-api/signature",
+			"revision": "18c77d3f9fe0abebb41b45c12f383ecac46f4ff1",
+			"revisionTime": "2017-11-27T03:29:13Z"
+		},
+		{
+			"checksumSHA1": "ZENOkAAfehmkpVKHUQm6im0/lBA=",
+			"path": "github.com/hyperhq/hypercli/pkg/tlsconfig",
+			"revision": "364c87f790753e2be249f51c80a5d75879292ce4",
+			"revisionTime": "2018-01-09T08:19:21Z"
 		},
 		{
 			"checksumSHA1": "UVO2SkAXrDSdvDhXjjpR1j/JS7M=",
