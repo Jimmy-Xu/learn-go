@@ -1,0 +1,79 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "AH7jcN7pvaPDU6UjHdpT081DDGk=",
+			"path": "cloud.google.com/go/compute/metadata",
+			"revision": "2107a43168e297b90d86797885a627ffec2fb22b",
+			"revisionTime": "2018-01-03T14:26:33Z"
+		},
+		{
+			"checksumSHA1": "dr5+PfIRzXeN+l1VG+s0lea9qz8=",
+			"path": "golang.org/x/net/context",
+			"revision": "a04bdaca5b32abe1c069418fb7088ae607de5bd0",
+			"revisionTime": "2017-10-03T05:09:24Z"
+		},
+		{
+			"checksumSHA1": "WHc3uByvGaMcnSoI21fhzYgbOgg=",
+			"path": "golang.org/x/net/context/ctxhttp",
+			"revision": "a04bdaca5b32abe1c069418fb7088ae607de5bd0",
+			"revisionTime": "2017-10-03T05:09:24Z"
+		},
+		{
+			"checksumSHA1": "RaekNH/ysm8WTarD6at46a+lj7Q=",
+			"path": "golang.org/x/oauth2",
+			"revision": "30785a2c434e431ef7c507b54617d6a951d5f2b4",
+			"revisionTime": "2018-01-04T22:04:51Z"
+		},
+		{
+			"checksumSHA1": "oSg3tdOtNm3xxj6X9FNxikU4w14=",
+			"path": "golang.org/x/oauth2/google",
+			"revision": "30785a2c434e431ef7c507b54617d6a951d5f2b4",
+			"revisionTime": "2018-01-04T22:04:51Z"
+		},
+		{
+			"checksumSHA1": "j2GQ0D0cjZ2nlcB0QI/S8V8hGiI=",
+			"path": "golang.org/x/oauth2/internal",
+			"revision": "30785a2c434e431ef7c507b54617d6a951d5f2b4",
+			"revisionTime": "2018-01-04T22:04:51Z"
+		},
+		{
+			"checksumSHA1": "huVltYnXdRFDJLgp/ZP9IALzG7g=",
+			"path": "golang.org/x/oauth2/jws",
+			"revision": "30785a2c434e431ef7c507b54617d6a951d5f2b4",
+			"revisionTime": "2018-01-04T22:04:51Z"
+		},
+		{
+			"checksumSHA1": "QPndO4ODVdEBILRhJ6869UDAoHc=",
+			"path": "golang.org/x/oauth2/jwt",
+			"revision": "30785a2c434e431ef7c507b54617d6a951d5f2b4",
+			"revisionTime": "2018-01-04T22:04:51Z"
+		},
+		{
+			"checksumSHA1": "jPeEJ9D0qeynRztmvKbS4LWcWwo=",
+			"path": "google.golang.org/api/compute/v0.beta",
+			"revision": "2c6d8d196bf34219b5c8f453dd2ec079b7f1ab0c",
+			"revisionTime": "2018-01-05T00:03:37Z"
+		},
+		{
+			"checksumSHA1": "QG/4r7h0fWCSM4tn8932h02tSIo=",
+			"path": "google.golang.org/api/gensupport",
+			"revision": "2c6d8d196bf34219b5c8f453dd2ec079b7f1ab0c",
+			"revisionTime": "2018-01-05T00:03:37Z"
+		},
+		{
+			"checksumSHA1": "BWKmb7kGYbfbvXO6E7tCpTh9zKE=",
+			"path": "google.golang.org/api/googleapi",
+			"revision": "2c6d8d196bf34219b5c8f453dd2ec079b7f1ab0c",
+			"revisionTime": "2018-01-05T00:03:37Z"
+		},
+		{
+			"checksumSHA1": "1K0JxrUfDqAB3MyRiU1LKjfHyf4=",
+			"path": "google.golang.org/api/googleapi/internal/uritemplates",
+			"revision": "2c6d8d196bf34219b5c8f453dd2ec079b7f1ab0c",
+			"revisionTime": "2018-01-05T00:03:37Z"
+		}
+	],
+	"rootPath": "github.com/jimmy-xu/learn-go/gcp"
+}
