@@ -2,21 +2,20 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
+	"strings"
+	"time"
 
 	apiv1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"flag"
-	"time"
-	"strings"
 )
 
 var (
-	//HYPER_HOST = "tcp://gcp-us-central1.hyper.sh:6443"
-	HYPER_HOST = "tcp://127.0.0.1:6443"
-	POD_NUM = 10
+	HYPER_HOST = "tcp://gcp-us-central1.hyper.sh:6443"
+	POD_NUM    = 100
 )
 
 func main() {
@@ -35,16 +34,16 @@ func main() {
 
 	switch action {
 	case "create":
-		for i:=0; i< POD_NUM; i++ {
+		for i := 1; i <= POD_NUM; i++ {
 			createPod(i, clientset)
 		}
 	case "list":
 		listPod(clientset)
 	case "delete":
-		for i:=0; i< POD_NUM; i++ {
+		for i := 1; i <= POD_NUM; i++ {
 			deletePod(i, clientset)
 		}
-	default :
+	default:
 		fmt.Println("Please specify --action")
 	}
 }
@@ -70,12 +69,12 @@ func createPod(index int, clientset *kubernetes.Clientset) error {
 				  }
 				]
 			  }
-			}`, index, 8000 + index)
+			}`, index, 8000+index)
 
-	name := fmt.Sprintf("pod-%v",index)
+	name := fmt.Sprintf("pod-%v", index)
 	begin := time.Now()
 	defer func() {
-		LogTimeConsumption(begin, err,"create pod %s", name)
+		LogTimeConsumption(begin, err, "%v: create pod %s", index, name)
 	}()
 
 	var podData apiv1.Pod
@@ -92,18 +91,18 @@ func listPod(clientset *kubernetes.Clientset) {
 		fmt.Errorf("get pod list error: %v", err)
 	} else {
 		for i, item := range podList.Items {
-			fmt.Printf("%v: %v %v\n", i, item.Name, item.Status.Message)
+			fmt.Printf("%v: %v %v\n", i, item.Name, item.Status.Phase)
 		}
 	}
 }
 
 func deletePod(index int, clientset *kubernetes.Clientset) {
 	var err error
-	name := fmt.Sprintf("pod-%v",index)
+	name := fmt.Sprintf("pod-%v", index)
 	begin := time.Now()
 
 	defer func() {
-		LogTimeConsumption(begin, err,"delete pod %s", name)
+		LogTimeConsumption(begin, err, "%v: delete pod %s", index, name)
 	}()
 
 	opts := meta_v1.DeleteOptions{}
@@ -116,9 +115,9 @@ func deletePod(index int, clientset *kubernetes.Clientset) {
 func LogTimeConsumption(begin time.Time, err error, format string, args ...interface{}) {
 	if err == nil {
 		msg := fmt.Sprintf(format, args...)
-		fmt.Printf("%s : %v\n", msg, time.Now().Sub(begin))
+		fmt.Printf("%s : %0.2fs\n", msg, time.Now().Sub(begin).Seconds())
 	} else {
-		if strings.Contains(err.Error(),"could not find the requested resource") {
+		if strings.Contains(err.Error(), "could not find the requested resource") {
 			err = fmt.Errorf("not found")
 		}
 		msg := fmt.Sprintf(format, args...)
