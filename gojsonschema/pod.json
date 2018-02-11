@@ -1,0 +1,23 @@
+{
+  "kind": "Pod",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "test-nginx",
+    "creationTimestamp": null
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "test-nginx",
+        "image": "nginx:1.7.9",
+        "ports": [
+          {
+            "containerPort": 80
+          }
+        ],
+        "resources": {}
+      }
+    ]
+  },
+  "status": {}
+}

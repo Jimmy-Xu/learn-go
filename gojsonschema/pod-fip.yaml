@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-fip-final
+spec:
+  containers:
+  - name: busybox
+    image: busybox
+    ports:
+    - containerPort: 8080
+      hostIP: 35.226.119.5
+      hostPort: 8081
+      protocal: TCP
+    - containerPort: 9999
+    - hostPort: 10000
+      hostIP: 35.226.119.5
+      protocal: TCP
+    - containerPort: 5555
+    - hostIP: 35.224.248.95
+      protocal: TCP
