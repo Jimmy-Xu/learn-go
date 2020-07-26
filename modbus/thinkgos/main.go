@@ -10,14 +10,16 @@ import (
 )
 
 var (
-	slaveID  byte   = 1
-	address  uint16 = 1
-	quantity uint16 = 1
+	slaveID byte = 1
+	//address  uint16 = 1
+	//quantity uint16 = 1
 )
 
 func main() {
 	action := flag.String("action", "get", "get or set")
-	port := flag.Int("port", 1, "port number, 1-4")
+	address := flag.Uint("address", 1, "address")
+	quantity := flag.Uint("quantity", 1, "quantity")
+	port := flag.Int("port", 1, "port number, 0 or 1")
 	debug := flag.Bool("debug", false, "enable debug")
 	flag.Parse()
 
@@ -27,7 +29,8 @@ func main() {
 
 	p := modbus.NewRTUClientProvider(modbus.WithEnableLogger(),
 		modbus.WithSerialConfig(serial.Config{
-			Address:  "/dev/ttyUSB0",
+			//Address:  "/dev/ttyUSB0",
+			Address:  "COM3",
 			BaudRate: 9600,
 			DataBits: 8,
 			StopBits: 1,
@@ -51,15 +54,15 @@ func main() {
 
 	switch *action {
 	case "get":
-		getPort(client)
+		getPort(client, uint16(*address), uint16(*quantity))
 	case "set":
-		setPort(client, *port)
+		setPort(client, uint16(*address), uint16(*port))
 	default:
 		logrus.Errorf("%s is unknown action", *action)
 	}
 }
 
-func getPort(client modbus.Client) {
+func getPort(client modbus.Client, address uint16, quantity uint16) {
 	value, err := client.ReadHoldingRegisters(slaveID, address, quantity)
 	if err != nil {
 		logrus.WithError(err).Error("failed to read holding registers")
@@ -68,8 +71,8 @@ func getPort(client modbus.Client) {
 	}
 }
 
-func setPort(client modbus.Client, port int) {
-	err := client.WriteSingleRegister(slaveID, address, uint16(port))
+func setPort(client modbus.Client, address uint16, port uint16) {
+	err := client.WriteSingleRegister(slaveID, address, port)
 	if err != nil {
 		logrus.WithError(err).Error("failed to write single register")
 	} else {
