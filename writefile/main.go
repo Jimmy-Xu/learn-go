@@ -7,7 +7,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"time"
+
+	"golang.org/x/text/encoding/simplifiedchinese"
 )
 
 var (
@@ -21,18 +24,26 @@ func main() {
 	flag.StringVar(&content, "content", "", "content to write to file")
 	flag.Parse()
 
-	content = fmt.Sprintf("%s %s %d\n", time.Now().Format("2006-01-02 15:04:05.000"), content, method)
+	var eol string
+	switch runtime.GOOS {
+	case "windows":
+		eol = "\r\n"
+	default:
+		eol = "\n"
+	}
+
+	content = fmt.Sprintf("%s %s %d%s", time.Now().Format("2006-01-02 15:04:05.000"), content, method, eol)
 
 	switch method {
 	case 0:
 		Write0(filename, content)
-    case 1:
+	case 1:
 		Write1(filename, content)
-    case 2:
+	case 2:
 		Write2(filename, content)
-    case 3:
+	case 3:
 		Write3(filename, content)
-    default:
+	default:
 		fmt.Println("method is invlaid")
 		os.Exit(1)
 	}
